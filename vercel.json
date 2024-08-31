@@ -3,7 +3,7 @@
   "buildCommand": "bun run build",
   "functions": {
     "dist/index.js": {
-      "runtime": "@vercel/node"
+      "runtime": "nodejs18.x"
     }
   },
   "routes": [
