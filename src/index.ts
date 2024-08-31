@@ -1,49 +1,23 @@
-import { addonBuilder, publishToCentral, Subtitle } from 'stremio-addon-sdk';
-import SubtitlesService from './services/subtitles';
-import pino from 'pino';
-import serveHTTP from './services/serveHTTP';
+import app from './app';
 
-const logger = pino();
+// @ts-ignore
+import opn from 'opn';
 
-const builder = new addonBuilder({
-	id: 'org.enricorobazza.stremio-subtitles',
-	version: '1.0.0',
+const BASE_URL = process.env.BASE_URL ?? 'http://127.0.0.1';
+const PORT = process.env.PORT ?? 3010;
 
-	logo: undefined,
-	name: 'Stremio Subtitles',
-	description: 'PT-BR Subtitles',
+const server = app.listen(PORT)
 
-	types: ['movie', 'series'],
-	catalogs: [],
-	resources: [
-		'subtitles'
-	]
-})
-
-const handleSubtitles = (args: { id: string }) => new Promise<{ subtitles: Subtitle[] }>(async (resolve, reject) => {
-	logger.info(`Fetching subtitles with args: ${JSON.stringify(args)}`)
-	const dataID = args.id.split(':')
-	if ((dataID[0]).slice(0, 2) === 'tt' && dataID[0].length <= 12) {
-		try {
-			const subtitles = await SubtitlesService.getSubtitles(args.id);
-			if (subtitles)
-				return resolve({ subtitles })
-		} catch (error) {
-			logger.error(error);
-			return resolve({ subtitles: [] })
-		}
-	} else {
-		return resolve({ subtitles: [] })
+server.on('listening', function () {
+	const url = `${BASE_URL}:${PORT}/manifest.json`
+	console.log('HTTP addon accessible at:', url)
+	if (process.argv.includes('--launch')) {
+		const base = 'https://staging.strem.io#'
+		//const base = 'https://app.strem.io/shell-v4.4#'
+		const installUrl = `${base}?addonOpen=${encodeURIComponent(url)}`
+		opn(installUrl)
+	}
+	if (process.argv.includes('--install')) {
+		opn(url.replace('http://', 'stremio://'))
 	}
 })
-
-builder.defineSubtitlesHandler(handleSubtitles);
-
-serveHTTP(builder.getInterface(), {
-	port: (process.env.PORT ?? 3010) as number
-})
-
-// handleSubtitles({ id: "tt1190634:1:7" });
-
-// If you want this addon to appear in the addon catalogs, call .publishToCentral() with the publically available URL to your manifest
-// publishToCentral('https://my-addon.com/manifest.json')

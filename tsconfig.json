@@ -1,12 +1,14 @@
 {
   "compilerOptions": {
-    "outDir": "./api",
+    "outDir": "dist",
+    "sourceMap": true,
+    "target": "esnext",
     "module": "commonjs",
-    "target": "es2019",
     "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitAny": true,
     "strict": true,
     "skipLibCheck": true
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "api"]
+  "include": ["./*.js", "src/**/*.ts", "test/**/*.ts"]
 }
