@@ -1,7 +1,9 @@
 {
   "version": 2,
   "functions": {
-    "api/index.js": {}
+    "api/index.js": {
+      "memory": 3009
+    }
   },
   "buildCommand": "bun run build",
   "routes": [
