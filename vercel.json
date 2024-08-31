@@ -1,7 +1,7 @@
 {
   "version": 2,
   "functions": {
-    "api/index.js": {
+    "dist/index.js": {
       "memory": 1024
     }
   },
