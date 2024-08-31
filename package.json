@@ -1,13 +1,15 @@
 {
   "name": "stremio-subtitles",
   "module": "src/index.ts",
+  "type": "module",
   "scripts": {
     "dev": "bun --hot src/index.ts",
     "start": "bun src/index.ts",
     "typecheck": "tsc --noEmit",
     "test:coverage": "bun test --coverage",
     "lint": "eslint src --ext .ts,.tsx",
-    "lint:fix": "bun lint --fix"
+    "lint:fix": "bun lint --fix",
+    "build": "rimraf dist && tsc"
   },
   "devDependencies": {
     "@horus.dev/eslint-config": "^1.0.1",
@@ -34,6 +36,7 @@
     "pino": "^9.3.2",
     "stremio-addon-sdk": "^1.6.10",
     "subtitle-converter": "^3.0.12",
+    "tsx": "^4.19.0",
     "unzipper": "^0.12.3"
   }
 }
