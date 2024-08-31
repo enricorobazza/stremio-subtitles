@@ -1,11 +1,12 @@
 {
   "version": 2,
-  "buildCommand": "bun run build",
-  "functions": {
-    "dist/index.js": {
-      "runtime": "nodejs18.x"
+  "builds": [
+    {
+      "src": "dist/index.js",
+      "use": "@vercel/node",
+      "config": { "includeFiles": ["dist/**"] }
     }
-  },
+  ],
   "routes": [
     {
       "src": "/(.*)",
