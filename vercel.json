@@ -2,6 +2,10 @@
   "version": 2,
   "builds": [
     {
+      "src": "bun run build",
+      "use": "@vercel/static-build"
+    },
+    {
       "src": "dist/index.js",
       "use": "@vercel/node",
       "config": { "includeFiles": ["dist/**"] }
