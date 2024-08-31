@@ -9,8 +9,7 @@
     "test:coverage": "bun test --coverage",
     "lint": "eslint src --ext .ts,.tsx",
     "lint:fix": "bun lint --fix",
-    "build": "echo 'build script running' && tsc",
-    "vercel-build": "bun run build"
+    "build": "echo 'build script running' && tsc"
   },
   "devDependencies": {
     "@horus.dev/eslint-config": "^1.0.1",
