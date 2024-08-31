@@ -1,7 +1,6 @@
 {
   "name": "stremio-subtitles",
   "module": "src/index.ts",
-  "type": "module",
   "scripts": {
     "dev": "bun --hot src/index.ts",
     "start": "bun src/index.ts",
