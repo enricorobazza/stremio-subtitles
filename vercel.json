@@ -1,12 +1,5 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "dist/index.js",
-      "use": "@vercel/node",
-      "config": { "includeFiles": ["dist/**"] }
-    }
-  ],
   "buildCommand": "bun run build",
   "routes": [
     {
@@ -20,10 +13,5 @@
         "Access-Control-Allow-Headers": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version"
       }
     }
-  ],
-  "build": {
-    "env": {
-      "NODE_ENV": "production"
-    }
-  }
+  ]
 }
