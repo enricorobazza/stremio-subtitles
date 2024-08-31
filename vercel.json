@@ -2,7 +2,7 @@
   "version": 2,
   "functions": {
     "api/index.js": {
-      "memory": 3009
+      "memory": 1024
     }
   },
   "buildCommand": "bun run build",
