@@ -137,6 +137,7 @@ const getSubtitles = async (imdbId: string, openSubId: number, pathFn: PathFn) =
 		langSubs['pb'] = langSubs['pt'];
 	}
 
+	// delete pt
 	if ('pt' in langSubs) {
 		delete langSubs['pt'];
 	}
