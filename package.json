@@ -9,7 +9,7 @@
     "test:coverage": "bun test --coverage",
     "lint": "eslint src --ext .ts,.tsx",
     "lint:fix": "bun lint --fix",
-    "build": "rimraf dist && tsc"
+    "build": "tsc"
   },
   "devDependencies": {
     "@horus.dev/eslint-config": "^1.0.1",
