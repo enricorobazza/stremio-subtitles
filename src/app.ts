@@ -1,16 +1,17 @@
-import type { AddonInterface } from "stremio-addon-sdk"
-
 import express from 'express';
-import fs from 'fs';
-import path from 'path';
 import landingTemplate from 'stremio-addon-sdk/src/landingTemplate';
 import crypto from 'crypto';
 import addonInterface from './builder';
+import cors from 'cors';
+import pino from 'pino';
+import os from 'os';
+import path from 'path';
+const logger = pino();
 
 // @ts-ignore
 import getRouter from 'stremio-addon-sdk/src/getRouter';
 
-import downloadAndUnzip from "./services/downloader";
+import { downloadAndUnzip, downloadAndConvert } from "./services/downloader";
 
 function generateHash(inputString: string, algorithm = 'sha256') {
 	return crypto
@@ -36,6 +37,8 @@ app.use((_: any, res: { getHeader: (arg0: string) => any; setHeader: (arg0: stri
 })
 app.use(getRouter(addonInterface))
 
+app.use(cors());
+
 const hasConfig = !!(addonInterface.manifest.config || []).length
 
 // landing page
@@ -53,24 +56,42 @@ app.get('/sub.vtt', async (req, res) => {
 	try {
 		res.setHeader('Cache-Control', 'max-age=86400,staleRevalidate=stale-while-revalidate, staleError=stale-if-error, public');
 		let url: string | undefined;
+		let source: string | undefined;
 		if (req?.query?.from) url = req.query.from as string
+		if (req?.query?.source) {
+			source = req.query.source as string
+		}
+		else {
+			source = 'com';
+		}
 
 		res.setHeader('Content-Type', 'text/vtt;charset=UTF-8');
 
+		logger.info(`Received request: ${url}`);
+
 		if (url) {
-			console.log('trying to download', url);
-			const hash = generateHash(url);
-			const data = await downloadAndUnzip(url as string, `./files/${hash}.zip`, `./files/${hash}`)
-			res.send(data);
+			if (source === 'org') {
+				const hash = generateHash(url);
+				const tempDir = os.tmpdir();
+				const zipLocation = path.join(tempDir, `${hash}.zip`);
+				const unzipLocation = path.join(tempDir, `${hash}`);
+
+				const data = await downloadAndUnzip(url as string, zipLocation, unzipLocation)
+				res.send(data);
+			}
+			else {
+				const data = await downloadAndConvert(url as string);
+				res.send(data);
+			}
 		}
 
 		res.end()
 
 	} catch (err) {
+		logger.error(err);
 		res.setHeader('Content-Type', 'application/json');
+		res.status(500)
 		res.end()
-
-		console.error(err);
 	}
 })
 
@@ -79,26 +100,5 @@ if (hasConfig)
 		res.setHeader('content-type', 'text/html')
 		res.end(landingHTML)
 	})
-
-
-// const server = app.listen(options.port)
-// return new Promise(function (resolve, reject) {
-// 	server.on('listening', function () {
-// 		const url = `${BASE_URL}:${PORT}/manifest.json`
-// 		console.log('HTTP addon accessible at:', url)
-// 		if (process.argv.includes('--launch')) {
-// 			const base = 'https://staging.strem.io#'
-// 			//const base = 'https://app.strem.io/shell-v4.4#'
-// 			const installUrl = `${base}?addonOpen=${encodeURIComponent(url)}`
-// 			opn(installUrl)
-// 		}
-// 		if (process.argv.includes('--install')) {
-// 			opn(url.replace('http://', 'stremio://'))
-// 		}
-// 		resolve({ url, server })
-// 	})
-// 	server.on('error', reject)
-// })
-
 
 export default app;

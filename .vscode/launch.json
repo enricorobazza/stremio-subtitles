@@ -9,7 +9,7 @@
       "type": "bun",
       "args": ["run"],
       "request": "launch",
-      "program": "src/index.ts",
+      "program": "src/test.ts",
       "stopOnEntry": false,
       "internalConsoleOptions": "openOnSessionStart"
     }

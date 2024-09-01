@@ -44,6 +44,7 @@ const getSubtitlesForPath = async (path: string) => {
 
 			const langElement = elements[1]?.childNodes[0] as HTMLElement;
 			const langCode = langElement?.querySelector('div')?.classNames.replace('flag ', '');
+			const downloadsElement = elements[4]?.textContent;
 
 			if (!langCode || !urlElement) continue;
 
@@ -51,11 +52,12 @@ const getSubtitlesForPath = async (path: string) => {
 				{
 					lang: langCode,
 					url: BaseURL + urlElement.getAttribute("href"),
-					id: langCode
+					id: langCode,
+					downloads: parseInt(downloadsElement)
 				}
 			)
 		}
-		return (subs)
+		return (subs.sort((a, b) => b.downloads - a.downloads))
 
 	} catch (e) {
 		logger.error(e)
@@ -132,17 +134,30 @@ const getSubtitles = async (imdbId: string, openSubId: number, pathFn: PathFn) =
 	}
 
 	// if no pb, set as pt
-	if (!('pb' in langSubs) && 'pt' in langSubs) {
-		logger.info('No BR portuguese, setting as PT');
-		langSubs['pb'] = langSubs['pt'];
+	// if (!('pb' in langSubs) && 'pt' in langSubs) {
+	// 	logger.info('No BR portuguese, setting as PT');
+	// 	langSubs['pb'] = langSubs['pt'];
+	// }
+
+	// if pb, replace for pt
+	if ('pb' in langSubs) {
+		langSubs['pt'] = langSubs['pb'].map(subtitle => ({
+			...subtitle,
+			id: subtitle.id.replace('pob', 'por'),
+			lang: subtitle.lang.replace('pob', 'por')
+		}));
 	}
 
 	// delete pt
-	if ('pt' in langSubs) {
-		delete langSubs['pt'];
-	}
+	// if ('pt' in langSubs) {
+	// 	delete langSubs['pt'];
+	// }
 
-	return getLinks(Object.values(langSubs).flat(1));
+	const flattenedArray = Object.values(langSubs).flat(1);
+
+	logger.info(`Returning ${flattenedArray.length} subs`);
+
+	return getLinks(flattenedArray);
 }
 
 const getEpisodeUrl = async (imdbId: string, openSubId: number, season: string, episode: string) => {
@@ -150,7 +165,20 @@ const getEpisodeUrl = async (imdbId: string, openSubId: number, season: string, 
 	return episodes?.[season]?.[episode]?.url;
 }
 
-const getSeriesSubtitles = async (imdbId: string, openSubId: number, season: string, episode: string) => {
+const getOpenSubId = async (imdbId: string) => {
+	const openSubMetaData = await getMetaData(imdbId);
+
+	if (!openSubMetaData || openSubMetaData.length === 0) {
+		return
+	}
+
+	return openSubMetaData?.[0]?.id;
+}
+
+const getSeriesSubtitles = async (imdbId: string, season: string, episode: string) => {
+	const openSubId = await getOpenSubId(imdbId);
+	if (!openSubId) return [];
+
 	const episodeUrl = await getEpisodeUrl(imdbId, openSubId, season, episode);
 	const pathFn: PathFn = (lang, imdbId, openSubId) => episodeUrl?.replace('sublanguageid-all', `sublanguageid-${lang}`) ?? "";
 	return getSubtitles(imdbId, openSubId, pathFn);
@@ -160,7 +188,10 @@ const getLinks = (subtitles: Subtitle[]) => {
 	return subtitles.map(subtitle => {
 
 		const link = subtitle.url;
-		const url = `${BASE_URL}:${PORT}/sub.vtt?from=${encodeURIComponent(link)}`;
+
+		const apiUrl = PORT !== "80" ? `${BASE_URL}:${PORT}` : BASE_URL;
+
+		const url = `${apiUrl}/sub.vtt?from=${encodeURIComponent(link)}&source=org`;
 
 		return {
 			...subtitle,
@@ -170,9 +201,11 @@ const getLinks = (subtitles: Subtitle[]) => {
 	});
 }
 
-const getMovieSubtitles = async (imdbId: string, openSubId: number) => {
+const getMovieSubtitles = async (imdbId: string) => {
+	const openSubId = await getOpenSubId(imdbId);
+	if (!openSubId) return [];
 	const pathFn: PathFn = (lang, imdbId, openSubId) => `/en/search/sublanguageid-${lang}/imdbid-${imdbId}/idmovie-${openSubId}`
 	return getSubtitles(imdbId, openSubId, pathFn);
 }
 
-export default { getMetaData, getSeriesSubtitles, getMovieSubtitles };
+export default { getSeriesSubtitles, getMovieSubtitles };

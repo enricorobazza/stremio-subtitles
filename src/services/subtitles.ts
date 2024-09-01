@@ -1,28 +1,33 @@
 import OpenSubtitlesApi from './opensubtitles';
+import OpenSubtitlesComApi from './opensubtitles-com';
 
 const getSubtitles = async (id: string) => {
 	const dataId = id.split(':');
 
 	const imdbId = dataId[0];
 
-	const openSubMetaData = await OpenSubtitlesApi.getMetaData(imdbId);
-
-	if (!openSubMetaData || openSubMetaData.length === 0) {
-		return
-	}
-
-	const openSubId = openSubMetaData?.[0]?.id;
-
 	if (dataId.length > 1) { // series
 		const season = dataId[1];
 		const episode = dataId[2];
-		return await OpenSubtitlesApi.getSeriesSubtitles(imdbId, openSubId, season, episode);
+
+		let subtitles = await OpenSubtitlesApi.getSeriesSubtitles(imdbId, season, episode);
+
+		if (!subtitles || subtitles.length === 0) {
+			return await OpenSubtitlesComApi.getSeriesSubtitles(imdbId, season, episode);
+		}
+
+		return subtitles;
 	}
 	else { // movies
-		return await OpenSubtitlesApi.getMovieSubtitles(imdbId, openSubId);
-	}
 
-	return [];
+		let subtitles = await OpenSubtitlesApi.getMovieSubtitles(imdbId);
+
+		if (!subtitles || subtitles.length === 0) {
+			return await OpenSubtitlesComApi.getMovieSubtitles(imdbId);
+		}
+
+		return subtitles;
+	}
 }
 
 

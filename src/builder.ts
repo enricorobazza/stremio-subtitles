@@ -1,7 +1,6 @@
 import { addonBuilder, publishToCentral, Subtitle } from 'stremio-addon-sdk';
 import SubtitlesService from './services/subtitles';
 import pino from 'pino';
-import serveHTTP from './services/serveHTTP';
 
 const logger = pino();
 
@@ -26,8 +25,10 @@ const handleSubtitles = (args: { id: string }) => new Promise<{ subtitles: Subti
 	if ((dataID[0]).slice(0, 2) === 'tt' && dataID[0].length <= 12) {
 		try {
 			const subtitles = await SubtitlesService.getSubtitles(args.id);
-			if (subtitles)
+			if (subtitles) {
+				logger.info(subtitles[0]);
 				return resolve({ subtitles })
+			}
 		} catch (error) {
 			logger.error(error);
 			return resolve({ subtitles: [] })
@@ -41,11 +42,9 @@ builder.defineSubtitlesHandler(handleSubtitles);
 
 export default builder.getInterface();
 
-// serveHTTP(builder.getInterface(), {
-// 	port: (process.env.PORT ?? 3010) as number
-// })
+// handleSubtitles({ id: "tt24169886" });
 
-// handleSubtitles({ id: "tt1190634:1:7" });
+// downloadAndUnzip('', '', '/home/enricorobazza/projects/node/stremio-subtitles/files/test')
 
 // If you want this addon to appear in the addon catalogs, call .publishToCentral() with the publically available URL to your manifest
 // publishToCentral('https://my-addon.com/manifest.json')
